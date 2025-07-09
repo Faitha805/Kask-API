@@ -8,8 +8,8 @@ class Booking(db.Model):
     start_time = db.Column(db.DateTime, nullable=False)
     end_time = db.Column(db.DateTime, nullable=False)
     total_price = db.Column(db.Float, nullable=False)
-    booking_date = db.Column(db.DateTime, default=datetime.now())
-    booking_status = db.Column(db.String(20), default='Confirmed') # The booking may be confirmed, cancelled or used.
+    booking_date = db.Column(db.DateTime, default=datetime.now(), nullable=False)
+    booking_status = db.Column(db.String(20), default='Confirmed', nullable=False) # The booking may be confirmed, cancelled or used.
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     service_id = db.Column(db.Integer, db.ForeignKey("services.id"))
     user = db.relationship('User', backref="bookings")

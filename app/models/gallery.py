@@ -4,7 +4,7 @@ from datetime import datetime
 class Gallery(db.Model):
     __tablename__ = "galleries"
     id = db.Column(db.Integer, primary_key=True)
-    image_url = db.Column(db.String(250))
+    image_url = db.Column(db.String(250), nullable=False)
     caption = (db.Column(db.String(250), nullable=True))
     service_id = db.Column(db.Integer, db.ForeignKey('services.id'))
     service = db.relationship("Service", backref="galleries") # To access the parent entity which is services.

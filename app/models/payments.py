@@ -7,10 +7,10 @@ class Payment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     payment_date = db.Column(db.DateTime, default = datetime.now())
     amount = db.Column(db.Float, nullable = False)
-    payment_method = db.Column(db.String(50)) # These include but not limited to Cash, Mobile Money, Bank
-    payment_status = db.Column(db.String(20), default = "Paid") # These can be Paid, Pending or Failed.
+    payment_method = db.Column(db.String(50), nullable=False) # These include but not limited to Cash, Mobile Money, Bank
+    payment_status = db.Column(db.String(20), default = "Paid", nullable=False) # These can be Paid, Pending or Failed.
     booking_id = db.Column(db.Integer, db.ForeignKey("bookings.id")) # Reference to parent, bookings.
-    booking = db.relationship("User", backref="payments")
+    booking = db.relationship("Booking", backref="payments")
     created_at = db.Column(db.DateTime, default=datetime.now())
     updated_at = db.Column(db.DateTime, onupdate=datetime.now())
 
