@@ -8,7 +8,7 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     phone = db.Column(db.String(20), nullable=False)
     address = db.Column(db.String(250), nullable=True)
-    password = db.Column(db.String(10), nullable=False)
+    password = db.Column(db.String(128), nullable=False)
     user_type = db.Column(db.String(20), default="Customer")
     created_at = db.Column(db.DateTime, default=datetime.now())
     updated_at = db.Column(db.DateTime, onupdate=datetime.now())

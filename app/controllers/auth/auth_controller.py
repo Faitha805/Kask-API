@@ -102,6 +102,7 @@ def login():
             else:
                 return jsonify({'Message':'Invalid Password'}), HTTP_401_UNAUTHORIZED
 
+
         else:
             return jsonify({'Message':'Invalid email address'}),HTTP_401_UNAUTHORIZED
 
@@ -109,4 +110,3 @@ def login():
          return jsonify({
              'Error':str(e)
          }), HTTP_500_INTERNAL_SERVER_ERROR
-    
