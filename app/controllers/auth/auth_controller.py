@@ -73,6 +73,7 @@ def register_user():
 # User login based on their credentials (email and password).
 @auth.post('/login')
 def login():
+     # This makes a request body containing the following (email and password), necessary in post man.
      email = request.json.get('email')
      password = request.json.get('password')
 
