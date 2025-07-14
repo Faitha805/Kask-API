@@ -3,7 +3,7 @@ from app.status_codes import HTTP_400_BAD_REQUEST, HTTP_409_CONFLICT, HTTP_500_I
 import validators
 from app.models.users import User
 from app.extensions import db, bcrypt
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity
 
 auth = Blueprint('auth', __name__, url_prefix='/api')
 
@@ -88,6 +88,7 @@ def login():
 
             if is_correct_password:
                 access_token = create_access_token(identity = user.id)
+                refresh_token = create_refresh_token(identity=user.id)
 
                 # returning the response
                 return jsonify({
@@ -97,6 +98,7 @@ def login():
                         'email':user.email,
                         'user_type':user.user_type,
                         'access_token':access_token,
+                        'refresh_token':refresh_token
                     },
                     'Message':'You have successfully logged into your account.'
                 }), HTTP_200_OK
@@ -111,3 +113,11 @@ def login():
          return jsonify({
              'Error':str(e)
          }), HTTP_500_INTERNAL_SERVER_ERROR
+
+# Refresh token a long lived credential used to obtain a new access token when the current one expires.
+@auth.route("/refresh", methods=["POST"])
+@jwt_required(refresh=True) # When testing the end point, we have to always pass in a refresh token to get a new access token with the help of the user identity.
+def refresh():
+    identity = get_jwt_identity()
+    access_token = create_access_token(identity=identity)
+    return jsonify(access_token=access_token) # Response is to return the refresh token whenever we return the user.

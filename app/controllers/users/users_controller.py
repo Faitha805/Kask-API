@@ -2,6 +2,8 @@ from flask import Blueprint, request, jsonify
 from app.status_codes import HTTP_400_BAD_REQUEST, HTTP_409_CONFLICT, HTTP_500_INTERNAL_SERVER_ERROR, HTTP_201_CREATED, HTTP_401_UNAUTHORIZED, HTTP_200_OK, HTTP_404_NOT_FOUND
 import validators
 from app.models.users import User
+from app.models.bookings import Booking
+from app.models.payments import Payment
 from app.extensions import db, bcrypt
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
@@ -137,7 +139,7 @@ def getUser(id):
                     for payment in user.payments ]
             
        return jsonify({
-           'Message':'All customers retrieved successfully',
+           'Message':'User retrieved successfully',
            'User':{
                 'id':user.id,
                 'username':user.name,
@@ -214,6 +216,54 @@ def updateUserDetails(id):
                  }
              })
 
+
+     except Exception as e:
+         return jsonify({
+             'Error':str(e)
+         }), HTTP_500_INTERNAL_SERVER_ERROR
+     
+# Delete user details
+@users.route('/delete/<int:id>', methods=['DELETE']) # PUT method is used to update all details of a particular resource, PATCH updates only a particular attribute or detail on a route.
+@jwt_required() # End point protection.
+def deleteUserDetails(id):
+     try:
+         #Getting the id of a currently logged in user, especially for cases where we have protected the route.
+         current_user = get_jwt_identity()
+
+         # Variable to store the id itself
+         loggedInUser = User.query.filter_by(id=current_user).first()
+
+         # get user by id
+         user = User.query.filter_by(id=id).first()
+
+         # The id does not exist on the database
+         if not user:
+             return jsonify({"Error":"User not found"}), HTTP_404_NOT_FOUND
+         
+         # Only administrators can delete user details and the id coming from the request must belong to the currently logged in use
+         # Function to determine the type of the currenytly logged in user and to check if the id coming in from the request matches that of the user.
+         elif loggedInUser.user_type != 'admin' and user.id != current_user:
+             return jsonify({"Error":"You are not authorised to delete the user details"})
+         
+         # For user type of 'admin' and/or the id of thr request matches the id of the currently logged in user.
+         else:
+             # Delete the user with his associated bookings and payements.
+             # For booking
+             Booking.query.filter_by(user_id=user.id).delete()
+
+             # For payements
+             Payment.query.filter_by(user_id=user.id).delete()
+
+             # Deleting the user
+             db.session.delete(user)
+
+             # Committing the changes to the db.
+             db.session.commit()
+
+             # Returning a personalised response
+             return jsonify({
+                 'Message':user.name + "'s details and associated books and payements have been successfully deleted"
+             })
 
      except Exception as e:
          return jsonify({
