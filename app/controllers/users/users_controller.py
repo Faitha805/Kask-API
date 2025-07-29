@@ -3,7 +3,6 @@ from app.status_codes import HTTP_400_BAD_REQUEST, HTTP_409_CONFLICT, HTTP_500_I
 import validators
 from app.models.users import User
 from app.models.bookings import Booking
-from app.models.payments import Payment
 from app.extensions import db, bcrypt
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
@@ -63,8 +62,7 @@ def getAllCustomers():
                 'phone':customer.phone,
                 'address':customer.address,
                 'created_at':customer.created_at,
-                'bookings':[], # Retrieving the customers with their info on the bookings and payments made.
-                'payments':[]
+                'bookings':[], # Retrieving the customers with their info on the bookings made.
             }
 
             # Checking if an attribute/ object has data
@@ -80,15 +78,6 @@ def getAllCustomers():
                     'service_id':booking.service_id}
                     for booking in customer.bookings ]
 
-            if hasattr(customer, 'payments'):
-                customer_info['payments']=[{
-                    'id': payment.id,
-                    'payment_status': payment.payment_status,
-                    'total_price': payment.total_price,
-                    'payement_date':payment.payment_date,
-                    'payement_method':payment.payment_method,
-                    'booking_id':payment.booking_id}
-                    for payment in customer.payments ]
             # Adding data to that list, the customer info dictionary.
             customers_data.append(customer_info)
 
@@ -111,9 +100,8 @@ def getUser(id):
        # Creating a serialized variable: one that can be easily converted to a json
        user = User.query.filter_by(id=id).first()
 
-       # For customers we return their bookings and payements.
+       # For customers we return their bookings.
        bookings = []
-       payments = []
        
        # Checking if an object has data for the defined attributes.
        if hasattr(user, 'bookings'):
@@ -127,16 +115,6 @@ def getUser(id):
                 'user_id':booking.user_id,
                 'service_id':booking.service_id}
                 for booking in user.bookings ]
-
-       if hasattr(user, 'payments'):
-            payments = [{
-                'id': payment.id,
-                'payment_status': payment.payment_status,
-                'total_price': payment.total_price,
-                'payement_date':payment.payment_date,
-                'payement_method':payment.payment_method,
-                'booking_id':payment.booking_id}
-                    for payment in user.payments ]
             
        return jsonify({
            'Message':'User retrieved successfully',
@@ -147,8 +125,7 @@ def getUser(id):
                 'phone':user.phone,
                 'user_type':user.user_type,
                 'created_at':user.created_at,
-                'bookings':bookings,
-                'payments':payments
+                'bookings':bookings
            }
        }), HTTP_200_OK
      
@@ -177,7 +154,7 @@ def updateUserDetails(id):
          # Only administrators can update user details and the id coming from the request must belong to the currently logged in use
          # Function to determine the type of the currenytly logged in user and to check if the id coming in from the request matches that of the user.
          elif loggedInUser.user_type != 'admin' and user.id != current_user:
-             return jsonify({"Error":"You are not authorised to updatenthe user details"})
+             return jsonify({"Error":"You are not authorised to update the user details"}), HTTP_401_UNAUTHORIZED
          
          # For user type of 'admin' and/or the id of thr request matches the id of the currently logged in user.
          else:
@@ -214,8 +191,7 @@ def updateUserDetails(id):
                      'user_type':user.user_type,
                      'updated_at':user.updated_at
                  }
-             })
-
+             }), HTTP_200_OK
 
      except Exception as e:
          return jsonify({
@@ -243,16 +219,13 @@ def deleteUserDetails(id):
          # Only administrators can delete user details and the id coming from the request must belong to the currently logged in use
          # Function to determine the type of the currenytly logged in user and to check if the id coming in from the request matches that of the user.
          elif loggedInUser.user_type != 'admin' and user.id != current_user:
-             return jsonify({"Error":"You are not authorised to delete the user details"})
+             return jsonify({"Error":"You are not authorised to delete the user details"}), HTTP_401_UNAUTHORIZED
          
          # For user type of 'admin' and/or the id of thr request matches the id of the currently logged in user.
          else:
-             # Delete the user with his associated bookings and payements.
+             # Delete the user with his associated bookings.
              # For booking
              Booking.query.filter_by(user_id=user.id).delete()
-
-             # For payements
-             Payment.query.filter_by(user_id=user.id).delete()
 
              # Deleting the user
              db.session.delete(user)
@@ -263,10 +236,72 @@ def deleteUserDetails(id):
              # Returning a personalised response
              return jsonify({
                  'Message':user.name + "'s details and associated books and payements have been successfully deleted"
-             })
+             }), HTTP_200_OK
 
      except Exception as e:
          return jsonify({
              'Error':str(e)
          }), HTTP_500_INTERNAL_SERVER_ERROR
      
+# Searching for a customer
+@users.get('/search')
+@jwt_required()
+def searchCustomers():
+     # A request parameter storing a search term is necessary.
+     try:
+       # Search query
+       search_query = request.args.get('query', '') # Args are the query parameters in the url
+
+       # seaarch for users based on their name, ilike() makes the search case insensitive
+       customers = User.query.filter((User.name.ilike(f"%{search_query}"))
+                                     & (User.user_type.ilike('customer'))).all()
+       
+       # When no results are retrieved on searching.
+       if len(customers) == 0:
+           return jsonify({
+               'message':"No results found"
+           }), HTTP_404_NOT_FOUND
+       
+       else:
+           
+       
+        customers_data = []
+
+        # Looping through all customers in the database.
+        for customer in customers:
+            customer_info = {
+                'id':customer.id,
+                'customername':customer.name,
+                'email':customer.email,
+                'phone':customer.phone,
+                'address':customer.address,
+                'created_at':customer.created_at,
+                'bookings':[] # Retrieving the customers with their info on the bookings made.
+            }
+
+            # Checking if an attribute/ object has data
+            if hasattr(customer, 'bookings'):
+                customer_info['bookings']=[{
+                    'id': booking.id,
+                    'booking_status': booking.booking_status,
+                    'amount': booking.amount,
+                    'booking_date':booking.booking_date,
+                    'start_time':booking.start_time,
+                    'end_time':booking.end_time,
+                    'user_id':booking.user_id,
+                    'service_id':booking.service_id}
+                    for booking in customer.bookings ]
+                
+            # Adding data to that list, the customer info dictionary.
+            customers_data.append(customer_info)
+
+       return jsonify({
+           'Message':'Customers with name {search_query} retrieved successfully',
+           'Total_search results':len(customers_data),
+           'Customers_data': customers_data
+       }), HTTP_200_OK
+     
+     except Exception as e:
+         return jsonify({
+             'Error':str(e)
+         }), HTTP_500_INTERNAL_SERVER_ERROR

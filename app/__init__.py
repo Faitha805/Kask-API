@@ -2,6 +2,10 @@ from flask import Flask
 from app.extensions import db, migrate, jwt
 from app.controllers.auth.auth_controller import auth
 from app.controllers.users.users_controller import users
+from app.controllers.bookings.bookings_controller import bookings
+from app.controllers.services.services_controller import services
+from app.controllers.gallery.gallery_controller import galleries
+from app.controllers.feedbacks.feedback_controller import feedbacks
 
 def create_app():
     # Application factory function
@@ -23,7 +27,6 @@ def create_app():
     from app.models.services import Service
     from app.models.gallery import Gallery
     from app.models.bookings import Booking
-    from app.models.payments import Payment
 
     # Registering blueprints
     # auth blueprint
@@ -31,6 +34,18 @@ def create_app():
 
     # users blueprint
     app.register_blueprint(users)
+
+    # booking blueprint
+    app.register_blueprint(bookings)
+
+    # services blueprint
+    app.register_blueprint(services)
+
+    # gallery blueprint
+    app.register_blueprint(galleries)
+
+    # feedback blueprint
+    app.register_blueprint(feedbacks)
 
     @app.route("/")
     def home():

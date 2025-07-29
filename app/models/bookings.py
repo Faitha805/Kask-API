@@ -5,11 +5,11 @@ class Booking(db.Model):
     # Customizing the table name.
     __tablename__ = "bookings"
     id = db.Column(db.Integer, primary_key=True)
-    start_time = db.Column(db.DateTime, nullable=False)
-    end_time = db.Column(db.DateTime, nullable=False)
-    total_price = db.Column(db.Float, nullable=False)
-    booking_date = db.Column(db.DateTime, default=datetime.now(), nullable=False)
-    booking_status = db.Column(db.String(20), default='Confirmed', nullable=False) # The booking may be confirmed, cancelled or used.
+    start_time = db.Column(db.Time, nullable=False)
+    end_time = db.Column(db.Time, nullable=False)
+    total_unit_price = db.Column(db.Float, nullable=False)
+    booking_date = db.Column(db.Date, nullable=False)
+    booking_status = db.Column(db.String(20), default='confirmed' , nullable=False) # The booking may be confirmed (upcoming), cancelled, missed or completed.
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     service_id = db.Column(db.Integer, db.ForeignKey("services.id"))
     user = db.relationship('User', backref="bookings")
@@ -21,7 +21,7 @@ class Booking(db.Model):
         super(Booking, self).__init__()
         self.start_time = start_time
         self.end_time = end_time
-        self.total_price = total_price
+        self.total__unit_price = total_price
         self.booking_date = booking_date
         self.booking_status = booking_status
         self.user_id = user_id
