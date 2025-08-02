@@ -10,6 +10,7 @@ class User(db.Model):
     address = db.Column(db.String(250), nullable=True)
     password = db.Column(db.String(128), nullable=False)
     user_type = db.Column(db.String(20), default="Customer")
+    email_preferences = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.now())
     updated_at = db.Column(db.DateTime, onupdate=datetime.now())
 

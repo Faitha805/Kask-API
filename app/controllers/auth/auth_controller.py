@@ -70,18 +70,24 @@ def register_user():
         return jsonify({'Error':str(e)}), HTTP_500_INTERNAL_SERVER_ERROR
     
 
-# User login based on their credentials (email and password).
+# User login based on their credentials (email/phone and password).
 @auth.post('/login')
 def login():
-     # This makes a request body containing the following (email and password), necessary in post man.
-     email = request.json.get('email')
+     # This makes a request body containing the following (email/phone and password), necessary in post man.
+     # Let the email or phone be cslled the identifier.
+     identifier = request.json.get('identifier')
      password = request.json.get('password')
 
      try:
-        if not password or not email:
-            return jsonify({'Message':'Email and password required'}),HTTP_400_BAD_REQUEST
+        if not password or not identifier:
+            return jsonify({'Message':'Email/phone and password required'}),HTTP_400_BAD_REQUEST
         
-        user = User.query.filter_by(email=email).first()
+        # Cecking if the identifieer given is an email or phone number.
+        if '@' in identifier:
+            user = User.query.filter_by(email=identifier).first()
+
+        else:
+            user = User.query.filter_by(phone=identifier).first()
 
         if user:# Password and email should both be cvalid or similar to what was stored.
             is_correct_password = bcrypt.check_password_hash(user.password, password)
@@ -96,6 +102,7 @@ def login():
                         'id':user.id,
                         'username':user.name,
                         'email':user.email,
+                        'phone':user.phone,
                         'user_type':user.user_type,
                         'access_token':access_token,
                         'refresh_token':refresh_token
