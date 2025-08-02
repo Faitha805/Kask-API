@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify
 from flask_mail import Message as MailMessage
-from app.__init__ import mail
 from app.status_codes import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_500_INTERNAL_SERVER_ERROR, HTTP_201_CREATED, HTTP_401_UNAUTHORIZED, HTTP_200_OK
 from app.models.users import User
 from app.models.messages import Message
@@ -60,6 +59,8 @@ def createMessage():
                        recipients=[recipient.email],
                        body=email_body
                   )
+                  
+                  from app.__init__ import mail
                   mail.send(msg)
 
              except Exception as e:
@@ -240,9 +241,9 @@ def updateMessages(id):
         return jsonify({'Error': str(e)}), HTTP_500_INTERNAL_SERVER_ERROR
  
 # delete a message(By Admin)
-@messages.route('/edit/<int:id>', methods=['PUT', 'PATCH']) # PUT method is used to update all details of a particular resource, PATCH updates only a particular attribute or detail on a route.
+@messages.route('/delete/<int:id>', methods=['DELETE'])
 @jwt_required()
-def updateMessages(id):
+def deleteMessages(id):
      try:
          #Getting the id of a currently logged in user, especially for cases where we have protected the route.
          current_user = get_jwt_identity()

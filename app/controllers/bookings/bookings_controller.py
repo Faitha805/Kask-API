@@ -213,12 +213,12 @@ def getAllBookingsOfUser(user_id):
          }), HTTP_500_INTERNAL_SERVER_ERROR
     
 # Retrieving a booking by id
-@bookings.get('/<int:id>') # <int:id> simce the id attribute for the bookings was an integer and it was attributed as id.
+@bookings.get('/<int:booking_id>') # <int:id> simce the id attribute for the bookings was an integer and it was attributed as id.
 @jwt_required()
-def getBooking(id):
+def getBooking(booking_id):
      try:
        # Creating a serialized variable: one that can be easily converted to a json
-       booking = Booking.query.filter_by(id=id).first()
+       booking = Booking.query.filter_by(id=booking_id).first()
 
        # For no booking with that id
        if not booking:
@@ -554,9 +554,8 @@ def missedBooking(id):
         db.session.rollback()
         return jsonify({'Error': str(e)}), HTTP_500_INTERNAL_SERVER_ERROR
 
-
 # Deleting a booking.
-@bookings.route('/delete/<int:id>', methods=['DELETE']) # PUT method is used to update all details of a particular resource, PATCH updates only a particular attribute or detail on a route.
+@bookings.route('/delete/<int:id>', methods=['DELETE'])
 @jwt_required() # End point protection.
 def deleteBooking(id):
      try:
