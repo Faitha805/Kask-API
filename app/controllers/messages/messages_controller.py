@@ -243,7 +243,7 @@ def updateMessages(id):
 # delete a message(By Admin)
 @messages.route('/delete/<int:id>', methods=['DELETE'])
 @jwt_required()
-def deleteMessages(id):
+def deleteMessage(id):
      try:
          #Getting the id of a currently logged in user, especially for cases where we have protected the route.
          current_user = get_jwt_identity()
